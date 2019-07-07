@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_principal"
+            android:icon="@drawable/buscarviaje_icono"
+            android:title="Principal" />
+        <item
+            android:id="@+id/nav_PedEnvs"
+            android:icon="@drawable/ver_icono"
+            android:title="Historial Pedidos/Envios" />
+        <item
+            android:id="@+id/nav_peticion"
+            android:icon="@drawable/crearviaje_icono"
+            android:title="Crear Petición" />
+    </group>
+
+    <item android:title="Administración">
+        <menu>
+            <item
+                android:id="@+id/nav_perfil"
+                android:icon="@drawable/perfil_icono"
+                android:title="Perfil" />
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/salir_icono"
+                android:title="Log Out" />
+        </menu>
+    </item>
+
+</menu>
