@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.bringit2me.R;
+import com.example.bringit2me.ui.login.LoginActivity;
+import com.example.bringit2me.ui.login.Usuario;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,21 +32,15 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private Usuario usuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        usuario = (Usuario)getIntent().getSerializableExtra("usuario_entidad");
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -99,16 +95,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_principal) {
             Intent i = new Intent(this, MainActivity.class);
+            i.putExtra("usuario_entidad", usuario);
             startActivity(i);
         } else if (id == R.id.nav_PedEnvs) {
 
         } else if (id == R.id.nav_peticion) {
             Intent i = new Intent(this, PeticionActivity.class);
+            i.putExtra("usuario_entidad", usuario);
             startActivity(i);
         } else if (id == R.id.nav_perfil) {
 
         } else if (id == R.id.nav_logout) {
-
+            Intent i = new Intent(this, LoginActivity.class);
+            startActivity(i);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
