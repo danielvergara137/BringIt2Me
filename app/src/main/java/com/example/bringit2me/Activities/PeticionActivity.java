@@ -24,8 +24,10 @@ import com.example.bringit2me.R;
 import com.example.bringit2me.ui.login.LoginActivity;
 import com.example.bringit2me.ui.login.Usuario;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -40,6 +42,8 @@ public class PeticionActivity extends AppCompatActivity implements NavigationVie
     private String Or;
     private String Dest;
     private Usuario usuario;
+    private LatLng locationOr;
+    private LatLng locationDes;
 
     public final Calendar c = Calendar.getInstance();
 
@@ -73,17 +77,19 @@ public class PeticionActivity extends AppCompatActivity implements NavigationVie
                 getSupportFragmentManager().findFragmentById(R.id.frOrigen);
 
         // Specify the types of place data to return.
-        autocompleteOrigen.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteOrigen.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME,Place.Field.LAT_LNG, Place.Field.ADDRESS_COMPONENTS));
         autocompleteOrigen.setHint("Origen");
         autocompleteOrigen.setCountry("CL");
+        autocompleteOrigen.setTypeFilter(TypeFilter.ADDRESS);
 
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteOrigen.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
-                Log.i("Origen", "Place: " + place.getName() + ", " + place.getId());
-                Or = place.getName();
+                Log.i("Origen", "Place: " + place.getName() + ", " + place.getId() + ", " + place.getAddressComponents().asList().get(3).getName());
+                Or = place.getAddressComponents().asList().get(3).getName();
+                locationOr = place.getLatLng();
             }
 
             @Override
@@ -97,16 +103,18 @@ public class PeticionActivity extends AppCompatActivity implements NavigationVie
                 getSupportFragmentManager().findFragmentById(R.id.frDest);
 
         // Specify the types of place data to return.
-        autocompleteDestino.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteDestino.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME,Place.Field.LAT_LNG, Place.Field.ADDRESS_COMPONENTS));
         autocompleteDestino.setHint("Destino");
         autocompleteDestino.setCountry("CL");
+        autocompleteOrigen.setTypeFilter(TypeFilter.ADDRESS);
         // Set up a PlaceSelectionListener to handle the response.
         autocompleteDestino.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
-                Log.i("Destino", "Place: " + place.getName() + ", " + place.getId());
-                Dest = place.getName();
+                Log.i("Destino", "Place: " + place.getName() + ", " + place.getId() + ", " + place.getLatLng());
+                Dest = place.getAddressComponents().asList().get(3).getName();
+                locationDes = place.getLatLng();
             }
 
             @Override
@@ -129,8 +137,8 @@ public class PeticionActivity extends AppCompatActivity implements NavigationVie
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_principal) {
-            Intent i = new Intent(this, MainActivity.class);
+        if (id == R.id.nav_busqueda) {
+            Intent i = new Intent(this, BusquedaActivity.class);
             i.putExtra("usuario_entidad", usuario);
             startActivity(i);
         } else if (id == R.id.nav_PedEnvs) {
@@ -206,7 +214,7 @@ public class PeticionActivity extends AppCompatActivity implements NavigationVie
         if(str_fecha.isEmpty() || str_origen.isEmpty() || str_destino.isEmpty()){
             Toast.makeText(this, "Ingrese todos los datos", Toast.LENGTH_LONG).show();
         }
-        else if(DBQueries.solicitarPedido(str_fecha,Or,Dest,5000,usuario.getDisplayName(),this)) {
+        else if(DBQueries.solicitarPedido(str_fecha,Or,Dest,5000,usuario.getDisplayName(), locationOr, locationDes ,this)) {
             Intent i = new Intent(this, MainActivity.class);
             i.putExtra("usuario_entidad", usuario);
             startActivity(i);

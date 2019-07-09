@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,7 +25,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TableLayout;
+import android.widget.Toast;
 
+import com.example.bringit2me.DB.DBQueries;
+import com.example.bringit2me.Entidades.Pedido;
 import com.example.bringit2me.R;
 import com.example.bringit2me.ui.login.LoginActivity;
 import com.example.bringit2me.ui.login.Usuario;
@@ -32,7 +38,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
@@ -40,21 +48,27 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+public class BusquedaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private Usuario usuario;
+    TableLayout tl;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    private List<Marker> marks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_busqueda);
         usuario = (Usuario)getIntent().getSerializableExtra("usuario_entidad");
         Toolbar toolbar = findViewById(R.id.toolbar);
+        tl = findViewById(R.id.infoped);
+        tl.setVisibility(View.INVISIBLE);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -67,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        Places();
     }
 
     @Override
@@ -128,6 +143,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    private void Places() {
+        com.google.android.libraries.places.api.Places.initialize(getApplicationContext(), "AIzaSyA7MSYdDD3aQarHYYYamIaKnSiyZ4W2aoU");
+        // Create a new Places client instance.
+        PlacesClient placesClient = com.google.android.libraries.places.api.Places.createClient(this);
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteOrigen = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Specify the types of place data to return.
+        autocompleteOrigen.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS_COMPONENTS));
+        autocompleteOrigen.setHint("Ingrese Destino");
+        autocompleteOrigen.setCountry("CL");
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteOrigen.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i("Origen", "Place: " + place.getName() + ", " + place.getId());
+                proyBusqueda(place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("Origen", "An error occurred: " + status);
+            }
+        });
+
+    }
 
     public void centreMapOnLocation(Location location, String title){
 
@@ -155,8 +200,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        final Marker[] myMarker = new Marker[1];
         Intent intent = getIntent();
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                // First check if myMarker is null
+                if (myMarker[0] == null) {
+
+                    // Marker was not set yet. Add marker
+                    myMarker[0] = mMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .title("Tu marcador")
+                            .snippet("Que pretendes?"));
+
+                } else {
+
+                    // Marker already exists, just update it's position
+                    myMarker[0].setPosition(latLng);
+
+                }
+            }
+        });
         if (intent.getIntExtra("Place Number", 0) == 0) {
 
             // Zoom into users location
@@ -192,6 +258,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             }
         }
+    }
+    void proyBusqueda(String destino){
+        List<Pedido> busquedas;
+        busquedas = DBQueries.buscarPedido("Concepcion",destino,this);
+
+        if (busquedas.size() > 0)
+        {
+            Log.i("Busqueda", "La busqueda " + busquedas.get(0));
+            mostrarBusqueda(busquedas);
+        }
+        else Toast.makeText(this, "Falló el ingreso de solicitud", Toast.LENGTH_LONG).show();
+    }
+    void mostrarBusqueda(List<Pedido> pedidos){
+        mMap.clear();
+        int height = 150;
+        int width = 150;
+        BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_ped);
+        Bitmap b=bitmapdraw.getBitmap();
+        Bitmap smallMarker = Bitmap.createScaledBitmap(b, width, height, false);
+        for(int i=0; i<pedidos.size(); i++){
+            mMap.addMarker(new MarkerOptions().position(pedidos.get(i).getLocationOr()).title("Pedido con destino a " + pedidos.get(i).getDestino()).icon(BitmapDescriptorFactory.fromBitmap(smallMarker)));
+        }
+        mMap.setOnMarkerClickListener(this);
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        tl.setVisibility(View.VISIBLE);
+        return false;
+    }
+    public void llevarPed(View b){
+        DBQueries.llevarPedido(1,this);
+        Intent i = new Intent(this, BusquedaActivity.class);
+        startActivity(i);
     }
 }
 

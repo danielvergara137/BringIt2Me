@@ -12,9 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".Activities.BusquedaActivity"
+            android:label="Busqueda"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
             android:name=".Activities.PeticionActivity"
             android:label="@string/title_activity_peticion"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

@@ -4,7 +4,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.bringit2me.Entidades.Pedido;
 import com.example.bringit2me.ui.login.Usuario;
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBQueries {
 
@@ -46,12 +51,46 @@ public class DBQueries {
         return null;
     }
 
-    public static boolean solicitarPedido(String fecha, String origen, String destino, int precio, String usuario, Context context){
+    public static boolean solicitarPedido(String fecha, String origen, String destino, int precio, String usuario, LatLng locOrigen, LatLng locDestino,  Context context){
         AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper(context, "db", null, 1);
         SQLiteDatabase db = admin.getWritableDatabase();
-        String query = "INSERT INTO pedido(fecha, origen, destino, precio, estado, usuario) VALUES ('" + fecha + "', '" + origen + "', '" + destino + "', '" + precio + "', 'pendiente', '" + usuario + "')";
+        String query = "INSERT INTO pedido(fecha, origen, destino, precio, estado, usuario, lator, longor, latdes, longdes) VALUES ('" + fecha + "', '" + origen + "', '" + destino + "', '" + precio + "', 'pendiente', '" + usuario + "', '"+ locOrigen.latitude +"' , '"+ locOrigen.longitude+ "' , '" + locDestino.latitude + "' , '" + locDestino.longitude +"')";
         db.execSQL(query);
         db.close();
         return true;
     }
+
+    public static List<Pedido> buscarPedido(String origen, String destino, Context context){
+        AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper(context, "db", null, 1);
+        List<Pedido> pedidos = new ArrayList<>();
+        SQLiteDatabase db = admin.getWritableDatabase();
+        String query = "SELECT id, origen, destino, precio, fecha, lator, longor, latdes, longdes FROM pedido WHERE origen = '" + origen + "' and destino = '"+ destino + "' and estado = 'pendiente'";
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor.moveToFirst()){
+            do{
+                Pedido pedido = new Pedido(
+                        cursor.getInt(0),
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getInt(3),
+                        cursor.getString(4),
+                        cursor.getDouble(5),
+                        cursor.getDouble(6),
+                        cursor.getDouble(7),
+                        cursor.getDouble(8));
+                pedidos.add(pedido);
+            }while(cursor.moveToNext());
+        }
+        db.close();
+        return pedidos;
+    }
+    public static boolean llevarPedido(int id, Context context){
+        AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper(context, "db", null, 1);
+        SQLiteDatabase db = admin.getWritableDatabase();
+        String query = "UPDATE pedido SET estado = 'en curso' WHERE id = '" + id +"'";
+        db.execSQL(query);
+        db.close();
+        return true;
+    }
+
 }

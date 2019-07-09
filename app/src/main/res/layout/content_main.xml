@@ -17,26 +17,5 @@
         android:layout_height="match_parent"
         tools:context=".Activities.MapsActivity" />
 
-    <FrameLayout
-        android:layout_width="276dp"
-        android:layout_height="74dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:background="@color/design_default_color_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/map">
-
-        <fragment
-            android:id="@+id/autocomplete_fragment"
-            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-
-    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -4,10 +4,11 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
+
         <item
-            android:id="@+id/nav_principal"
+            android:id="@+id/nav_busqueda"
             android:icon="@drawable/buscarviaje_icono"
-            android:title="Principal" />
+            android:title="Búsqueda" />
         <item
             android:id="@+id/nav_PedEnvs"
             android:icon="@drawable/ver_icono"
